@@ -2,12 +2,16 @@
 // Created by baoyixing on 3/26/21.
 //
 
-#define MAX_SYMBOL 42
+#define MAX_SYMBOL 45
 #define NUM_SYMBOL 38
 #define XX_SYMBOL (MAX_SYMBOL - NUM_SYMBOL)
 #define BLOCK 160
 
 #include "CoderWithMean.h"
+
+#include "ProgressBar.h"
+#include "mytime.h"
+#include "show.h"
 
 typedef struct strings_ {
 	char* val;
@@ -64,6 +68,11 @@ void CoderWithMean::get_max_and_min_value(const char* input_file) {
 }
 
 int CoderWithMean::compress(const char* input_file, const char* output_file) {
+	std::chrono::milliseconds interval = std::chrono::milliseconds(25);
+	size_t origin_size = 0, compress_size = 0;
+	Time running_time = Time();
+
+	running_time.start();
 	int model_num = NUM_SYMBOL * NUM_SYMBOL * NUM_SYMBOL * 16;
 
 	create_table(table);
@@ -86,6 +95,7 @@ int CoderWithMean::compress(const char* input_file, const char* output_file) {
 		// save min and max value
 		out_file.write(&min_value, sizeof(char), 1);
 		out_file.write(&max_value, sizeof(char), 1);
+		compress_size += 2;
 
 		in_file.set_block_size(BLOCK);
 
@@ -120,6 +130,7 @@ int CoderWithMean::compress(const char* input_file, const char* output_file) {
 			uint32_t col_max = 0, tmp;
 			for (uint32_t i = 0; i < row_count; ++i) {
 				tmp = strlen(quality_block[i]);
+				origin_size += tmp;
 				col_len[i] = tmp;
 				if (col_max < tmp) col_max = tmp;
 			}
@@ -174,8 +185,11 @@ int CoderWithMean::compress(const char* input_file, const char* output_file) {
 			out1[6] = (row_count >> 16) & 0xff;
 			out1[7] = (row_count >> 24) & 0xff;
 
-			out_file.write(out1, sizeof(uint8_t), sz0 + 8);
+			compress_size += out_file.write(out1, sizeof(uint8_t), sz0 + 8);
 			delete[] out1;
+
+			ProgressBar progressBar = ProgressBar(col_max * row_count, interval);
+			progressBar.start();
 
 			RangeCoder rc;
 			rc.output(out0 + 8);
@@ -269,10 +283,12 @@ int CoderWithMean::compress(const char* input_file, const char* output_file) {
 						model_qual[model_idx].encodeSymbol(&rc, 0);
 						model_qual[model_num].encodeSymbol(&rc, quality_block[i][j]);
 					}
+					progressBar.update();
 				}
 			}
 
 			rc.FinishEncode();
+			progressBar.finish();
 			uint32_t sz1;
 			sz1 = rc.size_out();
 			/* block size */
@@ -286,7 +302,7 @@ int CoderWithMean::compress(const char* input_file, const char* output_file) {
 			out0[6] = (row_count >> 16) & 0xff;
 			out0[7] = (row_count >> 24) & 0xff;
 
-			out_file.write(out0, sizeof(char), sz1 + 8);
+			compress_size += out_file.write(out0, sizeof(char), sz1 + 8);
 
 			free_array((void**)quality_block, row_count);
 			free_array((void**)base_block, row_count);
@@ -303,6 +319,8 @@ int CoderWithMean::compress(const char* input_file, const char* output_file) {
 		free_list(quality_block_list);
 		free_list_contents(base_block_list);
 		free_list(base_block_list);
+		running_time.end();
+		show(origin_size, compress_size, running_time.get_time_used());
 	}
 	catch (std::bad_alloc& e) {
 		e.what();
@@ -321,6 +339,11 @@ int CoderWithMean::compress(const char* input_file, const char* output_file) {
 }
 
 int CoderWithMean::decompress(const char* compress_file, const char* fasta_file, const char* output_file) {
+	std::chrono::milliseconds interval = std::chrono::milliseconds(25);
+	size_t origin_size = 0, decompress_size = 0;
+	Time running_time = Time();
+
+	running_time.start();
 	char** decoded_block = nullptr;
 	char *in_buf2 = nullptr, *mean = nullptr;
 	int model_num = NUM_SYMBOL * NUM_SYMBOL * NUM_SYMBOL * 16;
@@ -339,6 +362,7 @@ int CoderWithMean::decompress(const char* compress_file, const char* fasta_file,
 		// restore min and max value
 		in_file.read(&min_value, sizeof(char), 1);
 		in_file.read(&max_value, sizeof(char), 1);
+		origin_size += 2;
 
 		int T = XX_SYMBOL - 1;
 		SIMPLE_MODEL<NUM_SYMBOL + 1>* model_qual;
@@ -357,7 +381,7 @@ int CoderWithMean::decompress(const char* compress_file, const char* fasta_file,
 			in_buf2 = new char[len_buf[0]];
 			mean = new char[len_buf[1]];
 
-			in_file.read(in_buf2, sizeof(char), len_buf[0]);
+			origin_size += in_file.read(in_buf2, sizeof(char), len_buf[0]);
 
 			RangeCoder rc_mean;
 			rc_mean.input(in_buf2);
@@ -369,7 +393,7 @@ int CoderWithMean::decompress(const char* compress_file, const char* fasta_file,
 
 			in_file.read(len_buf, sizeof(char), 4);
 			in_file.read(&len_buf[1], sizeof(char), 4);
-			in_file.read(in_buf1, sizeof(char), len_buf[0]);
+			origin_size += in_file.read(in_buf1, sizeof(char), len_buf[0]);
 
 			char* line;
 			uint32_t row_count = 0, tmp;
@@ -430,6 +454,9 @@ int CoderWithMean::decompress(const char* compress_file, const char* fasta_file,
 			decoded_block = (char**)calloc(row_count, sizeof(char*));
 			for (uint32_t i = 0; i < row_count; ++i)
 				decoded_block[i] = (char*)malloc(col_len[i] * sizeof(char));
+
+			ProgressBar progressBar = ProgressBar(col_max * row_count, interval);
+			progressBar.start();
 
 			RangeCoder rc;
 			rc.input(in_buf1);
@@ -525,8 +552,11 @@ int CoderWithMean::decompress(const char* compress_file, const char* fasta_file,
 					else {
 						decoded_block[i][j] = decoded_block[i][j] + T;
 					}
+					progressBar.update();
 				}
 			}
+
+			progressBar.finish();
 
 			node *f_n = first_line_list->front, *t_n = third_line_list->front;
 			strings* ss;
@@ -553,7 +583,7 @@ int CoderWithMean::decompress(const char* compress_file, const char* fasta_file,
 				t_n = forward(t_n);
 
 				/* 4th line */
-				out_file.write(decoded_block[i], sizeof(char), col_len[i]);
+				decompress_size += out_file.write(decoded_block[i], sizeof(char), col_len[i]);
 				fprintf(out_file.get_fp(), "\n");
 			}
 
@@ -574,8 +604,11 @@ int CoderWithMean::decompress(const char* compress_file, const char* fasta_file,
 			rc.FinishDecode();
 		}
 
+
 		std::cout << "finished" << std::endl;
 		delete[] model_qual;
+		running_time.end();
+		show(origin_size, decompress_size, running_time.get_time_used());
 	}
 	catch (std::bad_alloc& e) {
 		e.what();
