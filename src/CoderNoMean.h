@@ -1,19 +1,19 @@
-//
-// Created by baoyixing on 3/26/21.
-//
-
 #ifndef CODE_CODERNOMEAN_H
 #define CODE_CODERNOMEAN_H
+#include <omp.h>
+
 #include <cstdio>
 #include <cstring>
 #include <iostream>
 
+#include "ProgressBar.h"
 #include "clr.h"
 #include "coder.h"
 #include "file.h"
 #include "list.h"
 #include "simple_model.h"
 #include "table.h"
+
 
 #define MAX_SYMBOL 42
 #define NUM_SYMBOL 38
