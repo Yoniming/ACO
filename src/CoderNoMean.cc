@@ -6,6 +6,9 @@
 
 #include <exception>
 
+#include "mytime.h"
+#include "show.h"
+
 #define BLOCK 160
 
 typedef struct strings_ {
@@ -23,10 +26,12 @@ CoderNoMean::~CoderNoMean() = default;
 
 int CoderNoMean::compress(const char* input_file, const char* output_file) {
 	int ret_status = 0;
-
-	//	get_max_and_min_value(input_file);
+	std::chrono::milliseconds interval = std::chrono::milliseconds(25);
+	size_t origin_size = 0, compress_size = 0;
+	Time running_time = Time();
 
 	try {
+		running_time.start();
 		int model_num = NUM_SYMBOL * NUM_SYMBOL * NUM_SYMBOL * 16;
 		list* quality_block_list = make_list();
 		list* base_block_list = make_list();
@@ -40,6 +45,7 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 		// save min and max value
 		out_file.write(&min_value, sizeof(char), 1);
 		out_file.write(&max_value, sizeof(char), 1);
+		compress_size += 2;
 
 		in_file.set_block_size(BLOCK);
 		int T = XX_SYMBOL - 1;
@@ -72,6 +78,7 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 			uint32_t col_max = 0, tmp;
 			for (uint32_t i = 0; i < row_count; ++i) {
 				tmp = strlen(quality_block[i]);
+				origin_size += tmp;
 				col_len[i] = tmp;
 				if (col_max < tmp) col_max = tmp;
 			}
@@ -79,6 +86,10 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 			/* destory list*/
 			free_list(quality_block_list);
 			free_list(base_block_list);
+
+			// progress bar
+			auto progressBar = ProgressBar(col_max * row_count, interval);
+			progressBar.start();
 
 			RangeCoder rc;
 			rc.output(out0 + 8);
@@ -165,8 +176,10 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 						model_qual[model_idx].encodeSymbol(&rc, 0);
 						model_qual[model_num].encodeSymbol(&rc, quality_block[i][j]);
 					}
+					progressBar.update();
 				}
 			}
+			progressBar.finish();
 
 			rc.FinishEncode();
 			uint32_t sz1;
@@ -182,7 +195,7 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 			out0[6] = (row_count >> 16) & 0xff;
 			out0[7] = (row_count >> 24) & 0xff;
 
-			out_file.write(out0, sizeof(char), sz1 + 8);
+			compress_size += out_file.write(out0, sizeof(char), sz1 + 8);
 			free_array((void**)quality_block, row_count);
 			free_array((void**)base_block, row_count);
 			free(col_len);
@@ -191,11 +204,14 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 			base_block_list = make_list();
 		}
 
+
 		delete[] out0;
 		free_list_contents(quality_block_list);
 		free_list(quality_block_list);
 		free_list_contents(base_block_list);
 		free_list(base_block_list);
+		running_time.end();
+		show(origin_size, compress_size, running_time.get_time_used());
 	}
 	catch (std::bad_alloc& e) {
 		e.what();
@@ -215,7 +231,11 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 
 int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, const char* output_file) {
 	char** decoded_block = nullptr;
+	std::chrono::milliseconds interval = std::chrono::milliseconds(25);
+	size_t origin_size = 0, decompress_size = 0;
+	Time running_time = Time();
 
+	running_time.start();
 	int model_num = NUM_SYMBOL * NUM_SYMBOL * NUM_SYMBOL * 16;
 	create_table(table);
 	init_table();
@@ -234,6 +254,7 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 		// restore min and max value
 		in_file.read(&min_value, sizeof(char), 1);
 		in_file.read(&max_value, sizeof(char), 1);
+		origin_size += 2;
 
 		int T = XX_SYMBOL - 1;
 		SIMPLE_MODEL<NUM_SYMBOL + 1>* model_qual;
@@ -247,9 +268,9 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 			third_line_list = make_list();
 
 			/* read bytes from compress file */
-			in_file.read(len_buf, sizeof(char), 4);				// block size (bytes)
-			in_file.read(&len_buf[1], sizeof(char), 4);			// block rows
-			in_file.read(in_buf1, sizeof(char), len_buf[0]);	// block content
+			in_file.read(len_buf, sizeof(char), 4);							   // block size (bytes)
+			in_file.read(&len_buf[1], sizeof(char), 4);						   // block rows
+			origin_size += in_file.read(in_buf1, sizeof(char), len_buf[0]);	   // block content
 
 			char* line;
 			uint32_t row_count = 0, tmp;
@@ -257,8 +278,6 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 				for (int i = 0; i < 4; ++i) {
 					line = fa_file.getline();
 					if (!line) continue;
-					//					if (i == 0 || i == 2 || i == 3)
-					//						free(line);
 
 					if (i == 0) {
 						/* 节省内存空间 */
@@ -309,6 +328,9 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 			decoded_block = (char**)calloc(row_count, sizeof(char*));
 			for (uint32_t i = 0; i < row_count; ++i)
 				decoded_block[i] = (char*)malloc(col_len[i] * sizeof(char));
+
+			ProgressBar progressBar = ProgressBar(col_max * row_count, interval);
+			progressBar.start();
 
 			RangeCoder rc;
 			rc.input(in_buf1);
@@ -384,8 +406,11 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 					else {
 						decoded_block[i][j] = decoded_block[i][j] + T;
 					}
+					progressBar.update();
 				}
 			}
+
+			progressBar.finish();
 
 			node *f_n = first_line_list->front, *t_n = third_line_list->front;
 			strings* ss;
@@ -411,7 +436,7 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 				t_n = forward(t_n);
 
 				/* 4th line */
-				out_file.write(decoded_block[i], sizeof(char), col_len[i]);
+				decompress_size += out_file.write(decoded_block[i], sizeof(char), col_len[i]);
 				fprintf(out_file.get_fp(), "\n");
 			}
 
@@ -429,8 +454,8 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 		std::cout << "finished" << std::endl;
 
 		delete[] model_qual;
-		//		free_list_contents(base_block_list);
-		//		free_list(base_block_list);
+		running_time.end();
+		show(origin_size, decompress_size, running_time.get_time_used());
 	}
 	catch (std::bad_alloc& e) {
 		e.what();
