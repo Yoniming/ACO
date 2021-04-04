@@ -30,11 +30,11 @@ public:
 	int decompress(const char* compress_file, const char* fasta_file, const char* output_file) override;
 
 protected:
-	uint32_t max_len;
-	size_t buffer_size;
-	size_t used_m;
-	uint8_t min_value;
-	uint8_t max_value;
+	uint32_t max_len {1000000};
+	size_t buffer_size {200000000};
+	size_t used_m {500000000};
+	uint8_t min_value {0};
+	uint8_t max_value {0};
 };
 
 
