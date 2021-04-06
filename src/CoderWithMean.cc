@@ -5,7 +5,7 @@
 #define MAX_SYMBOL 45
 #define NUM_SYMBOL 38
 #define XX_SYMBOL (MAX_SYMBOL - NUM_SYMBOL)
-#define BLOCK 160
+#define BLOCK 128
 
 #include "CoderWithMean.h"
 
@@ -108,7 +108,7 @@ int CoderWithMean::compress(const char* input_file, const char* output_file) {
 			char* line;
 			uint32_t row_count = 0;
 
-			while (!in_file.feof() && row_count < max_len && row_count * in_file.get_block_size() * 1.0001 < used_m) {
+			while (!in_file.feof() && row_count < max_len && row_count * in_file.get_block_size() < used_m) {
 				for (int i = 0; i < 4; ++i) {
 					line = in_file.getline();
 

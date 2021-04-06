@@ -9,7 +9,7 @@
 #include "mytime.h"
 #include "show.h"
 
-#define BLOCK 160
+#define BLOCK 128
 
 typedef struct strings_ {
 	char* val;
@@ -56,7 +56,7 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 		while (!in_file.feof()) {
 			char* line;
 			uint32_t row_count = 0;
-			while (!in_file.feof() && row_count < max_len && row_count * in_file.get_block_size() * 1.000001 < used_m) {
+			while (!in_file.feof() && row_count < max_len && row_count * in_file.get_block_size() < used_m) {
 				for (int i = 0; i < 4; ++i) {
 					line = in_file.getline();
 
