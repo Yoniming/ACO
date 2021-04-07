@@ -1,6 +1,7 @@
-data
-build
-doc
-cmake-build-debug
-.idea
-.vscode
+data/
+build/
+doc/
+cmake-build-debug/
+.idea/
+.vscode/
+.clangformat
