@@ -5,8 +5,8 @@ project(code VERSION ${CODE_VERSION})
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
-set(CMAKE_C_COMPILER "/usr/local/gcc-7.2.0/bin/gcc")
-set(CMAKE_CXX_COMPILER "/usr/local/gcc-7.2.0/bin/g++")
+#set(CMAKE_C_COMPILER "/usr/local/gcc-7.2.0/bin/gcc")
+#set(CMAKE_CXX_COMPILER "/usr/local/gcc-7.2.0/bin/g++")
 
 set(default_build_type "Release")
 message(
