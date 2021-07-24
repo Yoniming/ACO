@@ -11,14 +11,16 @@
 #include <stdexcept>
 
 File::File(const char* c_str, const char* mode = "rb"): fp(fopen(c_str, mode)) {
-	if (fp == nullptr)
-		throw std::runtime_error(c_str);
+	if (fp == nullptr) {
+		std::string s = std::string(c_str) + " : doesn't exist or open file.";
+		throw std::runtime_error(s);
+	}
 }
 
 
 File::File(const std::string& str, const char* mode = "rb"): fp(fopen(str.c_str(), mode)) {
 	if (fp == nullptr)
-		throw std::runtime_error(str);
+		throw std::runtime_error(str + " : doesn't exist or open file.");
 }
 
 
@@ -36,6 +38,7 @@ char* File::getline() {
 	if (::feof(fp)) return nullptr;
 	size_t size = block;
 	char* line = (char*)malloc(size * sizeof(char));
+	if (line == nullptr) throw std::bad_alloc();
 	if (!fgets(line, size, fp)) {
 		free(line);
 		return nullptr;
@@ -49,7 +52,6 @@ char* File::getline() {
 				printf("%ld\n", size);
 				fprintf(stderr, "Malloc error\n");
 				exit(-1);
-				;
 			}
 			size_t readsize = size - curr;
 			if (readsize > INT_MAX)

@@ -23,8 +23,8 @@ public:
 	void stop();
 
 private:
-	std::atomic<bool> _expired {true};			 // timer stopped status
-	std::atomic<bool> _try_to_expire {false};	 // timer is in stop process
+	std::atomic<bool> _expired {true};
+	std::atomic<bool> _try_to_expire {false};
 	std::mutex _mutex;
 	std::condition_variable _expired_cond;
 };

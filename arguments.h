@@ -6,19 +6,24 @@
 extern "C" {
 #endif
 
-typedef enum FUNCTION_ { UNDEFINED, HELP = 1, CODE, DECODE } FUNCTION;
+typedef enum FUNCTION_ { UNDEFINED,
+						 HELP = 1,
+						 CODE,
+						 DECODE } FUNCTION;
 
 typedef struct args {
-  FUNCTION fun;
-  char *input_file;
-  char *output_file;
-  char *fasta_file;
-  void *others; // 预留扩充字段
+	FUNCTION fun;
+	char* input_file;
+	char* output_file;
+	char* fasta_file;
+	void* others;	 // 预留扩充字段
 } Args;
 
-void init_args(Args *args, char *config_file);
+void init_args(Args* args, char* config_file);
 
-void set_args_char(char **key, char *value);
+void reset_args(Args* args);
+
+void set_args_char(char** key, char* value);
 
 // void set_args_int(int key, char* value);
 #define set_args_int(key, value) (key = atoi(value))
@@ -32,4 +37,4 @@ void showUsage();
 }
 #endif
 
-#endif // !ARGUMENTS_H
+#endif	  // !ARGUMENTS_H

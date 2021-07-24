@@ -1,0 +1,269 @@
+BasedOnStyle: Google
+AccessModifierOffset: -4
+# 在访问修饰符（例如：“public:”）之前缩进 -4 字符
+AlignAfterOpenBracket: Align
+# 函数声明及定义的中的参数写成多行时不对齐
+AlignConsecutiveAssignments: false
+# 对齐赋值号
+# AlignConsecutiveBitFields: false
+# 不对齐位域
+# 该选项为 true 时的效果：
+# int aaaa : 1;
+# int b    : 12;
+# int ccc  : 8;
+
+AlignConsecutiveDeclarations: false
+# 不对齐变量类型
+# AlignConsecutiveMacros: true
+# 对齐宏定义
+
+AlignEscapedNewlines: false
+# 不对齐换行符的位置
+
+AlignOperands: true
+# 对齐操作数
+
+AlignTrailingComments: true
+# 对齐行末注释
+# AllowAllArgumentsOnNextLine: true
+# 允许在函数调用中，当一行写不下参数（实参）时，将参数全部放在第二行
+# AllowAllConstructorInitializersOnNextLine: true
+# 允许将通过构造函数赋初值的成员变量放在一行
+
+AllowAllParametersOfDeclarationOnNextLine: true
+# 允许在函数声明及定义中，当一行写不下参数（形参）时，将参数全部放在第二行
+
+AllowShortBlocksOnASingleLine: true
+# 允许将短的块放在同一行（块是指用大括号括起来的部分）
+
+AllowShortCaseLabelsOnASingleLine: true
+# 允许将短的 case 标签放在同一行
+
+# AllowShortEnumsOnASingleLine: true
+# 允许将短的枚举放在同一行
+
+AllowShortFunctionsOnASingleLine: true
+# 允许将短的函数体放在同一行
+
+AllowShortIfStatementsOnASingleLine: true
+# 允许将短的 if 语句放在同一行
+# AllowShortLambdasOnASingleLine: true
+# 允许将短的 lambda 表达式放在同一行
+
+AllowShortLoopsOnASingleLine: true
+# 允许将短的循环放在同一行
+# 例如：
+# while (true) continue; 
+
+AlwaysBreakAfterReturnType: None
+# 效果：
+# class A {
+#   int f() { return 0; };
+# };
+# int f();
+# int f() { return 1; }
+
+AlwaysBreakBeforeMultilineStrings: false
+# 不总是为多行字符串常量换行
+
+AlwaysBreakTemplateDeclarations: No
+# 在模板声明后不换行
+
+BinPackArguments: true
+# 允许在函数调用时，每行放置不同数量的参数
+
+BinPackParameters: true
+# 允许在函数声明和定义时，每行放置不同数量的参数
+
+BraceWrapping:
+  # AfterCaseLabel: false
+  AfterClass: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterObjCDeclaration: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  # 大括号不换行
+  BeforeCatch: true
+  BeforeElse: true
+  # 在 catch 和 else 前换行
+  # BeforeLambdaBody: false
+  # 在 lambda 表达式中的 []() 后不换行
+  # BeforeWhile: false
+  # 
+  IndentBraces: false
+  # 括号本身不缩进
+  SplitEmptyFunction: false
+  # 空函数的左右大括号写在一起
+  SplitEmptyRecord: false
+  # 空的 class, struct, union 的左右大括号写在一起
+  SplitEmptyNamespace: false
+  # 空的命名空间的左右大括号写在一起
+
+BreakAfterJavaFieldAnnotations: false
+# Java 中的多个 @ 注解（例如：“@override”）不换行
+BreakBeforeBinaryOperators: true
+# 二进制运算符之间不换行
+BreakBeforeBraces: Custom
+# 使用上面的自定义大括号换行规则
+BreakBeforeTernaryOperators: true
+# 三目运算符之间不换行
+BreakStringLiterals: false
+# 多行字符串常量不换行
+ColumnLimit: 0
+# 字符列数不受限制
+CompactNamespaces: false
+# namespace Foo {
+# namespace Bar {
+# }
+# }
+# （本条注释未写出缩进）
+
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+# 当构造函数的初始化器与函数名不能放在同一行时，将这些构造器单独放在一行
+ConstructorInitializerIndentWidth: 4
+# 列举构造函数的初始化器和继承类时，先缩进 4 字符
+ContinuationIndentWidth: 4
+# 当语句在一行不够写时，每空一行缩进 4 字符
+Cpp11BracedListStyle: true
+# 示例：
+# vector<int> x{ 1, 2, 3, 4 };
+# vector<T> x{ {}, {}, {}, {} };
+# f(MyMap[{ composite, key }]);
+# new int[3]{ 1, 2, 3 };
+# DeriveLineEnding: false
+# Line Ending: '\n'. If you are programming in Windows, set this to "UseCRLF" (\r\n).
+DerivePointerAlignment: false
+# 
+DisableFormat: false
+# Enable formatting
+
+ExperimentalAutoDetectBinPacking: false
+# NOTE: This is an experimental flag, that might go away or be renamed. Do not use this in config files, etc. Use at your own risk.
+FixNamespaceComments: false
+# 在命名空间的结尾不添加注释（例如：namespace a）
+IncludeBlocks: Regroup
+# #include "b.h"               into      #include "a.h"
+#                                        #include "b.h"
+# #include <lib/main.h>
+# #include "a.h"                         #include <lib/main.h>
+# IndentCaseBlocks: false
+# false:                                 true:
+# switch (fool) {                vs.     switch (fool) {
+# case 1: {                              case 1:
+#   bar();                                 {
+# } break;                                   bar();
+# default: {                               }
+#   plop();                                break;
+# }                                      default:
+# }                                        {
+#                                            plop();
+#                                          }
+#                                        }
+#IndentExternBlock: Indent
+# extern "C" {
+#   void foo();
+# }
+#IndentGotoLabels: true
+# 标号也要缩进，不顶格
+#IndentPPDirectives: BeforeHash
+# #if FOO
+#   #if BAR
+#     #include <foo>
+#   #endif
+# #endif
+
+IndentWidth: 4
+# 缩进大小：4
+IndentWrappedFunctionNames: false
+# 当函数的返回类型和函数名分成两行写时，函数名不缩进
+# InsertTrailingCommas: None
+# 不在分成多行的容器字面值的最后一个值的尾部添加逗号（目前仅针对 JavaScript），不能和 BinPackArguments 一同使用
+
+JavaScriptQuotes: Leave
+# 在 JavaScript 中，不要改变双引号为单引号，或将单引号改为双引号
+JavaScriptWrapImports: false
+# 在 JavaScript 中，将多个导入的包写在同一行
+
+KeepEmptyLinesAtTheStartOfBlocks: false
+# 在左大括号后不要空行
+
+MaxEmptyLinesToKeep: 2
+# 语句之间空行的最大数量
+NamespaceIndentation: All
+# 命名空间内的内容照常缩进
+ObjCBinPackProtocolList: Auto
+# 根据参数 BinPackParameters 来控制
+ObjCBlockIndentWidth: 4
+# 在 Objective-C 中，块内缩进 4 字符
+# ObjCBreakBeforeNestedBlockParam: false
+# 在 Objective-C 中，在函数调用的内嵌块参数之前换行
+
+ObjCSpaceAfterProperty: true
+# Add a space after @property in Objective-C, i.e. use @property (readonly) instead of @property(readonly).
+ObjCSpaceBeforeProtocolList: false
+# Add a space in front of an Objective-C protocol list, i.e. use Foo <Protocol> instead of Foo<Protocol>.
+PointerAlignment: Left
+# 指针符号靠左
+ReflowComments: true
+# 将过长的注释自动写成多行
+SortIncludes: true
+# 将引用的头文件按字典序升序排列
+SortUsingDeclarations: false
+# 不将 using 语句按字典序升序排列
+
+SpaceAfterCStyleCast: false
+# C 风格强制转换后、变量名之前不加空格
+# SpaceAfterLogicalNot: false
+# 在逻辑非符号 ! 后不加空格
+SpaceAfterTemplateKeyword: false
+# 在 template 关键字后不加空格
+SpaceBeforeAssignmentOperators: true
+# 在赋值号（包括 += 等）前添加空格
+SpaceBeforeCpp11BracedList: true
+# 用大括号批量赋值时，在左大括号前添加空格
+
+SpaceBeforeCtorInitializerColon: false
+# 构造函数的 () 后不加空格
+SpaceBeforeInheritanceColon: false
+# 列写继承类之前的冒号前不加空格
+SpaceBeforeParens: ControlStatements
+# 在控制语句的小括号之前添加空格，在函数调用的小括号之前不加空格
+SpaceBeforeRangeBasedForLoopColon: true
+# e.g. for (auto v: values) {}
+# SpaceBeforeSquareBrackets: false
+# 中括号前不加空格
+# SpaceInEmptyBlock: false
+# 空块内不加空格
+SpaceInEmptyParentheses: false
+# 空的小括号内不加空格
+SpacesBeforeTrailingComments: 4
+# 行末注释之前添加 4 空格
+SpacesInAngles: false
+# 在 <> 内不加空格
+SpacesInCStyleCastParentheses: false
+# 在 C 风格强制转换的小括号内不加空格
+# SpacesInConditionalStatement: false
+# 在条件语句的条件内（小括号内）不加空格
+SpacesInContainerLiterals: true
+# true:                                  false:
+# var arr = [ 1, 2, 3 ];         vs.     var arr = [1, 2, 3];
+# f({a : 1, b : 2, c : 3});              f({a: 1, b: 2, c: 3});
+SpacesInParentheses: false
+# 小括号内不加空格
+SpacesInSquareBrackets: false
+# 中括号内不加空格
+TabWidth: 4
+# 一个 Tab 占 4 字符
+# UseCRLF: false
+# Line Ending = '\n'
+UseTab: true
+
+# 
+---
+# Language: C
+---
+Language: Cpp
+---
+# Language: Java

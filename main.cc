@@ -1,13 +1,15 @@
 #include <getopt.h>
 
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 #include "arguments.h"
-#include "src/mytime.h"
-#include "src/coder.h"
 #include "src/CoderNoMean.h"
 #include "src/CoderWithMean.h"
+#include "src/coder.h"
+#include "src/mytime.h"
+
+#define INIT_RET -2
 
 int main(int argc, char* argv[]) {
 	int opt;
@@ -19,7 +21,7 @@ int main(int argc, char* argv[]) {
 		{"decode", no_argument, NULL, 'd'},
 		{"help", no_argument, NULL, 'h'},
 		{"time", no_argument, NULL, 't'},
-		{"mode", required_argument, NULL, 'm'},	// change mode
+		{"mode", required_argument, NULL, 'm'},	   // change mode
 		{NULL, 0, NULL, 0},
 	};
 
@@ -27,7 +29,7 @@ int main(int argc, char* argv[]) {
 	init_args(&args, NULL);
 
 	bool test_time = false;
-    int model = 0;
+	int model = 0;
 
 	while ((opt = getopt_long_only(argc, argv, short_string, long_options,
 								   &option_index))
@@ -43,7 +45,7 @@ int main(int argc, char* argv[]) {
 				test_time = true;
 				break;
 			case 'm':
-                set_args_int(model, optarg);
+				set_args_int(model, optarg);
 				break;
 			case 'h':
 			default:
@@ -70,17 +72,17 @@ int main(int argc, char* argv[]) {
 			std::cout << "Error: nessary argumets is missing!!!" << std::endl;
 	}
 
-	Coder *coder;
+	Coder* coder;
 	if (model == 0)
-		coder = new CoderNoMean(1000000000, 1500000000, 10000000);
+		coder = new CoderNoMean(1000000000, 1700000000, 10000000);
 	else if (model == 1)
-		coder = new CoderWithMean(1000000000, 1500000000, 10000000);
+		coder = new CoderWithMean(1000000000, 1700000000, 10000000);
 	else
-		std:: cout << "m == " << model << ": out of range(0, 1)" << std::endl;
+		std::cout << "m == " << model << ": out of set = { 0, 1 } " << std::endl;
 
 	std::cout << std::setw(120) << std::setfill('=') << "\n";
 
-	int ret = 0;
+	int ret = INIT_RET;
 	Time time = Time();
 	switch (args.fun) {
 		case FUNCTION::CODE:
@@ -108,6 +110,8 @@ int main(int argc, char* argv[]) {
 
 	if (ret == 0)
 		std::cout << "run successfully.........." << std::endl;
+
+	reset_args(&args);
 
 	return 0;
 }

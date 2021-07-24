@@ -9,32 +9,33 @@
 #include "mytime.h"
 #include "show.h"
 
-#define BLOCK 128
+#define BLOCK 160
 
 typedef struct strings_ {
 	char* val;
 	size_t sz;
 } strings;
 
-CoderNoMean::CoderNoMean(size_t buffer_sz, size_t used_memory, uint32_t max_len): max_len(max_len), buffer_size(buffer_sz), used_m(used_memory) {
-}
+CoderNoMean::CoderNoMean(size_t buffer_sz, size_t used_memory, uint32_t max_len)
+	: max_len(max_len), buffer_size(buffer_sz), used_m(used_memory) {}
 
-CoderNoMean::CoderNoMean(size_t buffer_sz, size_t used_memory, uint32_t max_len, uint8_t min, uint8_t max): max_len(max_len), buffer_size(buffer_sz), used_m(used_memory), min_value(min), max_value(max) {
-}
+CoderNoMean::CoderNoMean(size_t buffer_sz, size_t used_memory, uint32_t max_len,
+						 uint8_t min, uint8_t max)
+	: max_len(max_len), buffer_size(buffer_sz), used_m(used_memory), min_value(min), max_value(max) {}
 
 CoderNoMean::~CoderNoMean() = default;
 
 int CoderNoMean::compress(const char* input_file, const char* output_file) {
 	int ret_status = 0;
-	std::chrono::milliseconds interval = std::chrono::milliseconds(25);
+	std::chrono::milliseconds interval = std::chrono::milliseconds(50);
 	size_t origin_size = 0, compress_size = 0;
 	Time running_time = Time();
 
 	try {
 		running_time.start();
 		int model_num = NUM_SYMBOL * NUM_SYMBOL * NUM_SYMBOL * 16;
-		list* quality_block_list = make_list();
-		list* base_block_list = make_list();
+		list* quality_block_list = nullptr;
+		list* base_block_list = nullptr;
 		create_table(table);
 		init_table();
 		char* out0 = new char[buffer_size];
@@ -54,6 +55,10 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 		model_qual = new SIMPLE_MODEL<NUM_SYMBOL + 1>[model_num + 1];
 
 		while (!in_file.feof()) {
+			// init list
+			base_block_list = make_list();
+			quality_block_list = make_list();
+
 			char* line;
 			uint32_t row_count = 0;
 			while (!in_file.feof() && row_count < max_len && row_count * in_file.get_block_size() < used_m) {
@@ -80,10 +85,11 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 				tmp = strlen(quality_block[i]);
 				origin_size += tmp;
 				col_len[i] = tmp;
-				if (col_max < tmp) col_max = tmp;
+				if (col_max < tmp)
+					col_max = tmp;
 			}
 
-			/* destory list*/
+			/* destroy list*/
 			free_list(quality_block_list);
 			free_list(base_block_list);
 
@@ -99,8 +105,11 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 				for (uint32_t k = 0; k < row_count; ++k) {
 					i = j % 2 ? (row_count - k - 1) : k;
 
+					progressBar.update();
+
 					/* check boundary of array */
-					if (j >= col_len[i]) continue;
+					if (j >= col_len[i])
+						continue;
 
 					quality_block[i][j] = quality_block[i][j] - min_value;
 					char cur_base = base_block[i][j];
@@ -153,19 +162,20 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 							if (Q3 == Q4) {
 								C = 2;
 							}
-							//							 int M = j / 13;
-							//							 int a = col_len[i] / 13 + 1;
-							//							 model_idx = A * NUM_SYMBOL * 3 * a * 20 + B * 3 * a * 20 +
-							//							            C * a * 20 + M * 20 + G1 + 5 + NUM_SYMBOL * 20 +
-							//							            NUM_SYMBOL * NUM_SYMBOL * 20;
-							model_idx = A * NUM_SYMBOL * 3 * 20 + B * 3 * 20 + C * 20 + G1 + 5
-										+ NUM_SYMBOL * 20 + NUM_SYMBOL * NUM_SYMBOL * 20;
+							//							 int M =
+							// j / 13; 							 int
+							// a = col_len[i] / 13 + 1; model_idx = A * NUM_SYMBOL
+							//* 3 * a * 20 + B * 3 * a * 20 +
+							// C * a * 20 + M * 20 + G1 + 5 + NUM_SYMBOL * 20 +
+							// NUM_SYMBOL * NUM_SYMBOL * 20;
+							model_idx = A * NUM_SYMBOL * 3 * 20 + B * 3 * 20 + C * 20 + G1 + 5 + NUM_SYMBOL * 20 + NUM_SYMBOL * NUM_SYMBOL * 20;
 						}
 					}
 
 					// model_qual[model_idx].encodeSymbol(&rc, quality_block[offset]);
 					if (quality_block[i][j] > T) {
-						// ac_encode_symbol(&ace_ny, &acm_ny[model_idx], quality_block[offset]
+						// ac_encode_symbol(&ace_ny, &acm_ny[model_idx],
+						// quality_block[offset]
 						// - T);
 						model_qual[model_idx].encodeSymbol(&rc, quality_block[i][j] - T);
 					}
@@ -176,7 +186,6 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 						model_qual[model_idx].encodeSymbol(&rc, 0);
 						model_qual[model_num].encodeSymbol(&rc, quality_block[i][j]);
 					}
-					progressBar.update();
 				}
 			}
 			progressBar.finish();
@@ -199,39 +208,33 @@ int CoderNoMean::compress(const char* input_file, const char* output_file) {
 			free_array((void**)quality_block, row_count);
 			free_array((void**)base_block, row_count);
 			free(col_len);
-
-			quality_block_list = make_list();
-			base_block_list = make_list();
 		}
 
-
 		delete[] out0;
-		free_list_contents(quality_block_list);
-		free_list(quality_block_list);
-		free_list_contents(base_block_list);
-		free_list(base_block_list);
+
 		running_time.end();
 		show(origin_size, compress_size, running_time.get_time_used());
 	}
 	catch (std::bad_alloc& e) {
-		e.what();
+		std::cerr << e.what() << std::endl;
 		ret_status = -1;
 	}
 	catch (std::runtime_error& e) {
-		e.what();
+		std::cerr << e.what() << std::endl;
 		ret_status = 1;
 	}
 	catch (std::exception& e) {
-		e.what();
+		std::cerr << e.what() << std::endl;
 		ret_status = 2;
 	}
 
 	return ret_status;
 }
 
-int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, const char* output_file) {
+int CoderNoMean::decompress(const char* compress_file, const char* fasta_file,
+							const char* output_file) {
 	char** decoded_block = nullptr;
-	std::chrono::milliseconds interval = std::chrono::milliseconds(25);
+	std::chrono::milliseconds interval = std::chrono::milliseconds(50);
 	size_t origin_size = 0, decompress_size = 0;
 	Time running_time = Time();
 
@@ -243,7 +246,6 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 	int ret_status = 0;
 
 	try {
-		char* in_buf1 = new char[buffer_size];
 		list* base_block_list = nullptr;
 		list* first_line_list = nullptr;
 		list* third_line_list = nullptr;
@@ -251,8 +253,11 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 		auto in_file = File(compress_file, "rb");
 		auto fa_file = File(fasta_file, "rb");
 		auto out_file = File(output_file, "wb");
+		size_t checkStatus = 0;
 		// restore min and max value
-		in_file.read(&min_value, sizeof(char), 1);
+		checkStatus = in_file.read(&min_value, sizeof(char), 1);
+		if (checkStatus != 1)
+			throw std::runtime_error("Empty file!!!");
 		in_file.read(&max_value, sizeof(char), 1);
 		origin_size += 2;
 
@@ -262,32 +267,41 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 
 		uint32_t len_buf[2];
 		while (!in_file.feof()) {
+			/* read bytes from compress file */
+			checkStatus = in_file.read(len_buf, sizeof(char), 4);	 // block size (bytes)
+			// check end of binary file
+			if (checkStatus != 4)
+				break;
+			in_file.read(&len_buf[1], sizeof(char), 4);	   // block rows
+			origin_size += 8;
+
+			char* in_buf1 = new char[len_buf[0]];
+			origin_size += in_file.read(in_buf1, sizeof(char), len_buf[0]);	   // block content
+
 			/* init list */
 			base_block_list = make_list();
 			first_line_list = make_list();
 			third_line_list = make_list();
-
-			/* read bytes from compress file */
-			in_file.read(len_buf, sizeof(char), 4);							   // block size (bytes)
-			in_file.read(&len_buf[1], sizeof(char), 4);						   // block rows
-			origin_size += in_file.read(in_buf1, sizeof(char), len_buf[0]);	   // block content
 
 			char* line;
 			uint32_t row_count = 0, tmp;
 			while (!fa_file.feof() && row_count < len_buf[1]) {
 				for (int i = 0; i < 4; ++i) {
 					line = fa_file.getline();
-					if (!line) continue;
+					if (!line)
+						continue;
 
 					if (i == 0) {
 						/* 节省内存空间 */
 						tmp = strlen(line);
-						if (tmp * 3 < in_file.get_block_size()) {
+						if (tmp * 2 < in_file.get_block_size()) {
 							line = (char*)realloc(line, tmp * sizeof(char));
-							if (!line) throw std::bad_alloc();
+							if (!line)
+								throw std::bad_alloc();
 						}
 						auto* line_sz = (strings*)malloc(sizeof(strings));
-						if (!line_sz) throw std::bad_alloc();
+						if (!line_sz)
+							throw std::bad_alloc();
 						line_sz->val = line;
 						line_sz->sz = tmp;
 						list_insert(first_line_list, (void*)line_sz);
@@ -299,10 +313,12 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 						tmp = strlen(line);
 						if (tmp * 3 < in_file.get_block_size()) {
 							line = (char*)realloc(line, tmp * sizeof(char));
-							if (!line) throw std::bad_alloc();
+							if (!line)
+								throw std::bad_alloc();
 						}
 						auto* line_sz = (strings*)malloc(sizeof(strings));
-						if (!line_sz) throw std::bad_alloc();
+						if (!line_sz)
+							throw std::bad_alloc();
 						line_sz->val = line;
 						line_sz->sz = tmp;
 						list_insert(third_line_list, (void*)line_sz);
@@ -322,7 +338,8 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 			for (uint32_t i = 0; i < row_count; ++i) {
 				tmp = strlen(base_block[i]);
 				col_len[i] = tmp;
-				if (col_max < tmp) col_max = tmp;
+				if (col_max < tmp)
+					col_max = tmp;
 			}
 
 			decoded_block = (char**)calloc(row_count, sizeof(char*));
@@ -340,8 +357,11 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 				for (uint32_t k = 0; k < row_count; ++k) {
 					i = j % 2 ? (row_count - k - 1) : k;
 
+					progressBar.update();
+
 					/* check boundary of array */
-					if (j >= col_len[i]) continue;
+					if (j >= col_len[i])
+						continue;
 
 					char cur_base = base_block[i][j];
 					int J0 = table(cur_base);
@@ -390,12 +410,14 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 							if (Q3 == Q4) {
 								C = 2;
 							}
-							//							int M = j / 13;
-							//							int a = col_len[i] / 13 + 1;
+							//							int M =
+							// j / 13; 							int
+							// a = col_len[i] / 13 + 1;
 							//
-							//							model_idx = A * NUM_SYMBOL * 3 * a * 15 + B * 3 * a * 20 + C * a * 20 + M * 20 + G1 + 5 + NUM_SYMBOL * 20 + NUM_SYMBOL * NUM_SYMBOL * 20;
-							model_idx = A * NUM_SYMBOL * 3 * 20 + B * 3 * 20 + C * 20 + G1 + 5
-										+ NUM_SYMBOL * 20 + NUM_SYMBOL * NUM_SYMBOL * 20;
+							//							model_idx
+							//= A * NUM_SYMBOL * 3 * a * 15 + B * 3 * a * 20 + C * a * 20 + M
+							//* 20 + G1 + 5 + NUM_SYMBOL * 20 + NUM_SYMBOL * NUM_SYMBOL * 20;
+							model_idx = A * NUM_SYMBOL * 3 * 20 + B * 3 * 20 + C * 20 + G1 + 5 + NUM_SYMBOL * 20 + NUM_SYMBOL * NUM_SYMBOL * 20;
 						}
 					}
 					decoded_block[i][j] = model_qual[model_idx].decodeSymbol(&rc);
@@ -406,7 +428,6 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 					else {
 						decoded_block[i][j] = decoded_block[i][j] + T;
 					}
-					progressBar.update();
 				}
 			}
 
@@ -440,6 +461,7 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 				fprintf(out_file.get_fp(), "\n");
 			}
 
+			delete[] in_buf1;
 			free(col_len);
 			free_list_contents(first_line_list);
 			free_list(first_line_list);
@@ -458,21 +480,20 @@ int CoderNoMean::decompress(const char* compress_file, const char* fasta_file, c
 		show(origin_size, decompress_size, running_time.get_time_used());
 	}
 	catch (std::bad_alloc& e) {
-		e.what();
+		std::cerr << e.what() << std::endl;
 		ret_status = -1;
 	}
 	catch (std::runtime_error& e) {
-		e.what();
+		std::cerr << e.what() << std::endl;
 		ret_status = 1;
 	}
 	catch (std::exception& e) {
-		e.what();
+		std::cerr << e.what() << std::endl;
 		ret_status = 2;
 	}
 
 	return ret_status;
 }
-
 
 void CoderNoMean::get_max_and_min_value(const char* input_file) {
 	try {
@@ -490,8 +511,10 @@ void CoderNoMean::get_max_and_min_value(const char* input_file) {
 				else if (i == 3 && line) {
 					col_len = strlen(line);
 					for (uint32_t j = 0; j < col_len; ++j) {
-						if (line[j] < min) min = line[j];
-						if (line[j] > max) max = line[j];
+						if (line[j] < min)
+							min = line[j];
+						if (line[j] > max)
+							max = line[j];
 					}
 					free(line);
 				}
@@ -502,25 +525,17 @@ void CoderNoMean::get_max_and_min_value(const char* input_file) {
 		min_value = min;
 	}
 	catch (std::bad_alloc& e) {
-		e.what();
+		std::cerr << e.what() << std::endl;
 	}
 	catch (std::runtime_error& e) {
-		e.what();
+		std::cerr << e.what() << std::endl;
 	}
 	catch (std::exception& e) {
-		e.what();
+		std::cerr << e.what() << std::endl;
 	}
 }
 
-void CoderNoMean::set_min_value(uint8_t min) {
-	min_value = min;
-}
-void CoderNoMean::set_max_value(uint8_t max) {
-	max_value = max;
-}
-uint8_t CoderNoMean::get_min_value() const {
-	return min_value;
-}
-uint8_t CoderNoMean::get_max_value() const {
-	return max_value;
-}
+void CoderNoMean::set_min_value(uint8_t min) { min_value = min; }
+void CoderNoMean::set_max_value(uint8_t max) { max_value = max; }
+uint8_t CoderNoMean::get_min_value() const { return min_value; }
+uint8_t CoderNoMean::get_max_value() const { return max_value; }
