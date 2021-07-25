@@ -52,27 +52,27 @@ then, usage is shown:
 ```
 
 NAME
-		 code - code and decode
+                code - code and decode
 SYNOPSIS
-		Usage: code [OPTION]... INPUT FILE... [FASTQ_FILE] OUTPUT FILE... 
+                Usage: code [OPTION]... INPUT FILE... [FASTA_FILE] OUTPUT FILE... 
 
 DESCRIPTION
-		code and decode ...
+                code and decode ...
 
-		-c, --code
-				code input file into output file.
+                -c, --code
+                                code input file into output file.
 
-		-d, --decode
-				code input file into output file.
+                -d, --decode
+                                decode input file into output file.
 
-		-m, --mode
-				the type of model selected when compressing or decompressing
+                -t, --time
+                                record time of coding/decoding process.
 
-		-t, --time
-				record time of code or decode process.
+                -h, --help
+                                display this help and exit
 
-		-h, --help
-				display this help and exit
+                -v, --version
+                                output version information and exit.
 
 
 ```
@@ -81,6 +81,15 @@ Note:
 > + *Option `-t`* ： The time measured with the option `-t` means the total time which the program has been executed ***except for command line parsing***.
 > + *Option `-m`* : The same mode should be maintained when compressing and decompressing the same files.
 > + when decompressing file, the content of the second position argument fastq file is identical to output file. But, we only use the base line (2th line) to restore quality line(4th line) in our algorithm.
+
+# Declaration
+
+In our C++ project,
+
+1. ``ProgressBar.h/ProgressBar.cc``  For the implement of the progress bar, we refer to the following link: [用C++实现一个命令行进度条](https://github.com/HaoKunT/blog-hugo/blob/b6d3a55edc7ab858350445c44ea44cad369468c0/content/post/%E7%94%A8C%2B%2B%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%BF%9B%E5%BA%A6%E6%9D%A1.md) and modify a little details in order to better adopt to Linux system and run correctly as we expected.
+
+2.  File ```list.h/list.c ``` are copied and modified from [darknet](https://github.com/pjreddie/darknet/blob/master/src/list.c).
+
 
 # Bugs and Feedback
 Please use GitHub issues to open bug reports or provide feedback about ACO.

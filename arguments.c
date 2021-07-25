@@ -1,6 +1,7 @@
 #include "arguments.h"
 
 #include <stdlib.h>
+#include <stdio.h>
 
 
 void init_args(Args* args, char* config_file) {
@@ -40,4 +41,10 @@ void set_args_char(char** key, char* value) {
 		*key = (char*)realloc(*key, (l + 1) * sizeof(char));
 		strncpy(*key, value, (l + 1) * sizeof(char));
 	}
+}
+
+void showVersion(int major, int minor, int patch) {
+	char *repo_url = "https://github.com/Yoniming/code";
+	printf("ACO code version %d.%d.%d\n\n", major, minor, patch);
+	printf("ACO code software maintained and supported by %s.\n", repo_url);
 }

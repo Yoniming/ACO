@@ -6,10 +6,7 @@
 extern "C" {
 #endif
 
-typedef enum FUNCTION_ { UNDEFINED,
-						 HELP = 1,
-						 CODE,
-						 DECODE } FUNCTION;
+typedef enum FUNCTION_ { UNDEFINED, HELP = 1, CODE, DECODE } FUNCTION;
 
 typedef struct args {
 	FUNCTION fun;
@@ -33,8 +30,10 @@ void set_args_char(char** key, char* value);
 
 void showUsage();
 
+void showVersion(int major, int minor, int patch);
+
 #ifdef __cplusplus
 }
 #endif
 
-#endif	  // !ARGUMENTS_H
+#endif // !ARGUMENTS_H

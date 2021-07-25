@@ -1,27 +1,32 @@
 #include <getopt.h>
 
-#include <iomanip>
 #include <iostream>
+#include <iomanip>
 
 #include "arguments.h"
+#include "src/mytime.h"
+#include "src/coder.h"
 #include "src/CoderNoMean.h"
 #include "src/CoderWithMean.h"
-#include "src/coder.h"
-#include "src/mytime.h"
 
-#define INIT_RET -2
+#define MAJOR_VERSION 1
+#define MINOR_VERSION 0
+#define REVISION_VERSION 2
+
+#define RET_INIT -2
 
 int main(int argc, char* argv[]) {
 	int opt;
 	int option_index = 0;
-	const char* short_string = "cdhtm:";
+	const char* short_string = "cdhtvm:";
 
 	static struct option long_options[] = {
 		{"code", no_argument, NULL, 'c'},
 		{"decode", no_argument, NULL, 'd'},
 		{"help", no_argument, NULL, 'h'},
 		{"time", no_argument, NULL, 't'},
-		{"mode", required_argument, NULL, 'm'},	   // change mode
+		{"version", no_argument, NULL, 'v'},
+		{"mode", required_argument, NULL, 'm'},	// change mode
 		{NULL, 0, NULL, 0},
 	};
 
@@ -29,7 +34,8 @@ int main(int argc, char* argv[]) {
 	init_args(&args, NULL);
 
 	bool test_time = false;
-	int model = 0;
+	bool version = false;
+    int model = 0;
 
 	while ((opt = getopt_long_only(argc, argv, short_string, long_options,
 								   &option_index))
@@ -45,13 +51,21 @@ int main(int argc, char* argv[]) {
 				test_time = true;
 				break;
 			case 'm':
-				set_args_int(model, optarg);
+                set_args_int(model, optarg);
 				break;
+			case 'v':
+				version = true;
 			case 'h':
 			default:
 				args.fun = FUNCTION::HELP;
 				break;
 		}
+	}
+
+	if (version)
+	{
+		showVersion(MAJOR_VERSION, MINOR_VERSION, REVISION_VERSION);
+		return 0;
 	}
 
 	if (args.fun == FUNCTION::CODE) {
@@ -72,7 +86,7 @@ int main(int argc, char* argv[]) {
 			std::cout << "Error: nessary argumets is missing!!!" << std::endl;
 	}
 
-	Coder* coder;
+	Coder *coder;
 	if (model == 0)
 		coder = new CoderNoMean(1000000000, 1700000000, 10000000);
 	else if (model == 1)
@@ -82,7 +96,7 @@ int main(int argc, char* argv[]) {
 
 	std::cout << std::setw(120) << std::setfill('=') << "\n";
 
-	int ret = INIT_RET;
+	int ret = RET_INIT;
 	Time time = Time();
 	switch (args.fun) {
 		case FUNCTION::CODE:
