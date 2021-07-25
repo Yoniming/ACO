@@ -86,7 +86,7 @@ Note:
 
 In our C++ project,
 
-1. ``ProgressBar.h/ProgressBar.cc``  For the implement of the progress bar, we refer to the following link: [用C++实现一个命令行进度条](https://github.com/HaoKunT/blog-hugo/blob/b6d3a55edc7ab858350445c44ea44cad369468c0/content/post/%E7%94%A8C%2B%2B%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%BF%9B%E5%BA%A6%E6%9D%A1.md) and modify a little details in order to better adopt to Linux system and run correctly as we expected.
+1. ``ProgressBar.h/ProgressBar.cc``  For the implement of the progress bar, we refer to the following link: [How to implement a command line progress bar in C++](https://github.com/HaoKunT/blog-hugo/blob/b6d3a55edc7ab858350445c44ea44cad369468c0/content/post/%E7%94%A8C%2B%2B%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E5%91%BD%E4%BB%A4%E8%A1%8C%E8%BF%9B%E5%BA%A6%E6%9D%A1.md) and modify a little details in order to better adopt to Linux system and run correctly as we expected.
 
 2.  File ```list.h/list.c ``` are copied and modified from [darknet](https://github.com/pjreddie/darknet/blob/master/src/list.c).
 
